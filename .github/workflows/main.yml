@@ -1,0 +1,35 @@
+name: Build and Push to GHCR
+
+on:
+  push:
+    branches: [ "main" ]  # 仅 main 分支推送时触发
+
+env:
+  IMAGE_NAME: ghcr.io/jpus/node3go  # 替换为你的 GitHub 用户名和仓库名
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # 必须赋予写入 packages 的权限
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}  # 自动使用 GitHub Token
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
